@@ -1,0 +1,31 @@
+# Exclude APK binaries and app packages
+apks/
+*.apk
+
+# Exclude game ROMs, disc images, and emulator cores
+ROMs/
+*.chd
+*.gba
+*.nes
+*.iso
+*.bin
+*.cue
+*.pbp
+*.so
+*.zip
+
+# Exclude large 4K wallpapers (300+ MB)
+wallpapers/
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Screenshots
+screenshots/
+
+# System and editor files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
