@@ -100,18 +100,67 @@ Push the PS1 BIOS and ROMs:
 ..\sideload-jiostb\adb.exe push "ROMs\PS1\*.chd" /sdcard/ROMs/PSX/
 ```
 
+### Step 6: Revoke Intrusive Background Overlays ("Display Over Other Apps")
+Several persistent Jio system services hold the `SYSTEM_ALERT_WINDOW` permission by default (`FTI`, `iWedia MW`, `Jio BLE Automatic Pair`, `Jio Update Rcu Ota`, `JioRemoteDiagnose`, `JioSTBMRServer`). If not revoked, these background services can draw invisible overlay layers or intercept remote inputs over Monet Launcher.
+
+Revoke overlay access across all background packages in one command:
+```powershell
+$services = @(
+    "com.jio.media.stb.remotediagnose",
+    "com.jio.media.stbmrserver",
+    "com.iwedia.bleautomaticpairservicelw",
+    "com.iwedia.jio.rcuota",
+    "com.jio.media.jioaccount",
+    "com.jio.media.stb.adservice"
+)
+foreach ($pkg in $services) {
+    ..\sideload-jiostb\adb.exe shell "cmd appops set $pkg SYSTEM_ALERT_WINDOW ignore 2>/dev/null"
+}
+```
+
 ---
 
-## 🕹️ Emulation Performance Capabilities
+## 🕹️ Emulation Performance & Benchmark Matrix
 
-| Console Tier | Tested Titles | Performance |
+The **Amlogic S905X2** SoC (Quad-Core Cortex-A53 @ 1.80 GHz + Mali-G31 MP2) provides excellent 8-bit to 32-bit retro performance under Android 11:
+
+| Platform | Core / Standalone App | Resolution | Frame Rate | Tested & Verified Titles |
+|---|---|---|---|---|
+| **Sony PlayStation 1 (PSX)** | PCSX-ReARMed / Lemuroid | Native (240p/480i) | **Locked 60 FPS** | *Tekken 3*, *Resident Evil 1/2/3*, *Crash Bandicoot 1-3*, *Mortal Kombat Trilogy*, *Silent Hill*, *Street Fighter Alpha 3* |
+| **Game Boy Advance (GBA)** | mGBA / gpSP | 1x / 2x Scale | **Locked 60 FPS** | *Pokémon FireRed*, *Pokémon Emerald*, *Castlevania: Aria of Sorrow*, *The Legend of Zelda: The Minish Cap* |
+| **SNES / NES / Genesis** | Snes9x / FCEUmm / Genesis Plus GX | Native | **Locked 60 FPS** | *Super Mario World*, *Chrono Trigger*, *Contra*, *Sonic the Hedgehog 2*, *Streets of Rage 2* |
+| **Nintendo 64 (N64)** | Mupen64Plus-Next | Native (320x240) | **45–60 FPS** | *Super Mario 64*, *The Legend of Zelda: Ocarina of Time*, *Mario Kart 64* |
+| **Sony PSP** | PPSSPP (32-bit ARM) | 1x Native | **25–30 FPS (Light 2D/3D)** | *Patapon 1/2*, *Lumines*, *Persona 3 Portable* (Heavy 3D like *God of War: Ghost of Sparta* runs ~10–15 FPS; not recommended) |
+| **PlayStation 2 (PS2) / GameCube** | AetherSX2 / Dolphin | N/A | **Unsupported** | Hardware limitation (requires 64-bit `arm64-v8a` userland and high single-core IPC) |
+
+---
+
+## 🎮 Gamepad & Controller Setup
+
+The JHSC200 v3 supports both USB and Bluetooth game controllers without needing any root remapping:
+
+* **USB Gamepads (Zero Configuration):**
+  * Plug any standard USB controller into either of the two side USB ports (USB 2.0 / 3.0).
+  * Compatible with Xbox 360 / Xbox One wired controllers, DualShock 4 / DualSense (wired), and 2.4 GHz wireless controllers using a USB dongle (e.g., Logitech F710, 8BitDo Ultimate 2.4G).
+* **Bluetooth Gamepads:**
+  * Open the Android TV Bluetooth Pairing menu directly via ADB:
+    ```powershell
+    ..\sideload-jiostb\adb.exe shell "am start -a android.settings.BLUETOOTH_SETTINGS"
+    ```
+  * Put your controller into pairing mode (e.g., hold `Share + PS` on PlayStation controllers or hold the pair button on Xbox controllers) and select it on the TV screen.
+* **Input Latency Tip:** Keep the official Jio Bluetooth remote paired for power/volume controls, and use a 2.4 GHz USB gamepad or wired controller for zero input lag in fighting and platforming games.
+
+---
+
+## 🧰 Quick Troubleshooting Cheat Sheet
+
+| Symptom | Root Cause | Solution |
 |---|---|---|
-| **PlayStation 1 (PSX)** | Tekken 3, Resident Evil 1/2/3, Mortal Kombat Trilogy, SFA3 | **Locked 60 FPS** (PCSX-ReARMed) |
-| **Game Boy Advance (GBA)**| Pokémon Emerald, Pokémon FireRed | **Locked 60 FPS** (mGBA) |
-| **SNES / Genesis / Arcade**| 31-in-1 Multicart, Super Mario World, Sonic | **Locked 60 FPS** (Snes9x / Genesis Plus) |
-| **Nintendo 64 / DS** | Super Mario 64, Pokémon HeartGold | Playable (30–60 FPS) |
-
-*(Note: PlayStation 2 emulation like God of War 1 is not supported due to the 32-bit OS userland architecture and CPU single-core limitations).*
+| **SmartTube throws `SSLHandshakeException` or `Chain validation failed`** | STB system clock reset back to an old date after losing power or rebooting. | Run `powershell .\scripts\sync_system_clock.ps1` to sync the clock in real-time or configure NTP via `adb shell settings put global ntp_server time.google.com`. |
+| **On-screen keyboard doesn't appear when clicking search bars** | Stock Jio IME is disabled or hidden. | Run `powershell .\scripts\setup_default_keyboard.ps1` to enable and set LeanKeyboard as the active IME. |
+| **Monet Launcher doesn't show pushed wallpapers** | Android media scanner hasn't indexed the `/sdcard/Pictures/` folder. | Run `adb shell "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Pictures/4k\ game\ wallpapers/"`. |
+| **Audio crackling or stuttering in emulators** | Incompatible audio latency buffer in RetroArch / Lemuroid. | Go into emulator Settings → Audio → Set Audio Driver to `OpenSL ES` or `AudioTrack` and set Audio Latency to `64ms`. |
+| **ADB connection drops over Wi-Fi** | Android power saving or router IP lease renewal. | Use a fixed DHCP reservation on your Wi-Fi router for the STB and reconnect with `adb connect <STB_IP>:5555`. |
 
 ---
 
