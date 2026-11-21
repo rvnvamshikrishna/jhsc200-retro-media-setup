@@ -57,7 +57,7 @@ jhsc200-retro-media-setup/
 ### Prerequisites
 1. Complete the Stage 1 network unlock using `sideload-jiostb`.
 2. Connect your STB to your PC via Windows Mobile Hotspot or LAN.
-3. Ensure ADB is authorized on the box (`192.168.137.204:5555` or your STB's IP).
+3. Ensure ADB is authorized on the box (`<STB_IP>:5555`).
 
 ### Step 1: System Debloat & Protection
 Run the debloat script to permanently disable all 18 Jio telemetry services, OTA auto-updaters, and background task killers:
@@ -118,3 +118,4 @@ Push the PS1 BIOS and ROMs:
 ## 🛡️ License & Disclaimers
 * All third-party APKs, ROMs, and BIOS files are property of their respective copyright holders.
 * Scripts and configuration guides are released under the MIT License for educational and local device customization purposes.
+

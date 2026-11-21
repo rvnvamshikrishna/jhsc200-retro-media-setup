@@ -1,16 +1,23 @@
 param(
     [string]$AdbPath = "adb",
-    [string]$DeviceIp = "192.168.137.204:5555",
+    [string]$StbIp = "",
     [string]$WallpaperDir = "..\wallpapers"
 )
 
-Write-Host "Connecting to Jio STB ($DeviceIp)..."
-& $AdbPath connect $DeviceIp
+if (-not $StbIp) {
+    $StbIp = Read-Host "Enter Jio STB IP address (e.g. <STB_IP> or <STB_IP>:5555)"
+}
+if ($StbIp -notmatch ':\d+$') {
+    $StbIp = "$StbIp:5555"
+}
+
+Write-Host "Connecting to Jio STB ($StbIp)..."
+& $AdbPath connect $StbIp
 
 Write-Host "Creating /sdcard/Pictures/4k game wallpapers/..."
 & $AdbPath shell "mkdir -p '/sdcard/Pictures/4k game wallpapers'"
 
-Write-Host "Pushing wallpapers..."
+Write-Host "Pushing wallpapers from $WallpaperDir..."
 & $AdbPath push "$WallpaperDir/." "/sdcard/Pictures/4k game wallpapers/"
 
 Write-Host "Broadcasting media scan intent..."
